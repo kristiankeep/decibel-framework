@@ -99,39 +99,6 @@ abstract class DRouter implements DDispatchable
     }
 
     /**
-     * Checks that the client IP address is authorised to make requests
-     * to this server.
-     *
-     * @param    DRequest $request The request.
-     *
-     * @return    void
-     * @throws    DForbidden    If the client IP address is banned by the configured
-     *                        security policy.
-     */
-    protected static function checkIpAddress(DRequest $request)
-    {
-        $session = DSession::load();
-        $sessionStarted = $session->isStarted();
-        // Check that the current IP address is not blocked.
-        if (!$sessionStarted
-            || !isset($session['app\\decibel\\router\\DRouter-ipChecked'])
-        ) {
-            $ipAddress = $request->getIpAddress();
-            if (DECIBEL_CORE_BLOCKIPS
-                && DIpAddress::checkIpAddress($ipAddress, DIpAddress::FLAG_BLOCKED)
-            ) {
-                throw new DForbidden(
-                    null,
-                    'Client IP address is banned by the configured security policy.'
-                );
-            }
-            if ($session->isStarted()) {
-                $session['app\\decibel\\router\\DRouter-ipChecked'] = true;
-            }
-        }
-    }
-
-    /**
      * Compares the priority of two routers for array sorting purposes.
      *
      * @param    DRouter $r1 The first router.
@@ -277,7 +244,6 @@ abstract class DRouter implements DDispatchable
                 throw new DForbidden('/', 'Malformed URL requested.');
             }
         }
-        self::checkIpAddress($request);
         // Start the profiler.
         if (defined(DProfiler::PROFILER_ENABLED)) {
             DProfiler::stopProfiling('Decibel::startup');
